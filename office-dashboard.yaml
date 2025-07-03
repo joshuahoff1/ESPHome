@@ -15,15 +15,6 @@ logger:
 api:
   encryption:
     key: "h/cXlhKoimR10oZ1jxSk+ptejmAdbcDvqABB1oRXBq4="
-  actions:
-    - action: get_events
-      variables:
-        my_events: string
-      then:
-        - text_sensor.template.publish:
-            id: all_events
-            state: !lambda |- 
-              return my_events;
 
 ota:
   - platform: esphome
@@ -166,24 +157,77 @@ text_sensor:
     entity_id: calendar.joshua_hoff1_gmail_com
     attribute: "end_time"
 
-  - platform: template
-    id: all_events
-
   - platform: homeassistant
-    entity_id: weather.forecast_home
+    entity_id: weather.pirateweather
     id: myWeather
   - platform: homeassistant
-    entity_id: weather.forecast_home
+    entity_id: weather.pirateweather
     id: temp
     attribute: "temperature"
   - platform: homeassistant
-    entity_id: weather.forecast_home
+    entity_id: weather.pirateweather
     id: humi
     attribute: "humidity"
+
   - platform: homeassistant
-    entity_id: weather.forecast_home
-    id: uv
-    attribute: "uv_index"
+    entity_id: sensor.weather_forecast
+    attribute: weather_temperature_0
+    id: weather_temperature_0
+
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_temperature_1
+    id: weather_temperature_1
+
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_temperature_2
+    id: weather_temperature_2
+
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_temperature_3
+    id: weather_temperature_3
+    
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_condition_0
+    id: weather_condition_0
+
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_timestamp_0
+    id: weather_timestamp_0
+  
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_condition_1
+    id: weather_condition_1
+
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_timestamp_1
+    id: weather_timestamp_1
+
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_condition_2
+    id: weather_condition_2
+
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_timestamp_2
+    id: weather_timestamp_2
+    
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_condition_3
+    id: weather_condition_3
+
+  - platform: homeassistant
+    entity_id: sensor.weather_forecast
+    attribute: weather_timestamp_3
+    id: weather_timestamp_3
 
   # Sunrise
   - platform: sun
@@ -263,11 +307,11 @@ font:
       - "\U000F059B" # sunset
       - "\U000F059C" # sunrise 
   - file: 'fonts/materialdesignicons-webfont.ttf'
-    id: font_weather # Copy the above icon and change the size to 40
-    size: 200
+    id: img_font_medium # Copy the above icon and change the size to 60
+    size: 60
     glyphs: *mdi-weather-glyphs
   - file: 'fonts/materialdesignicons-webfont.ttf'
-    id: img_font_small # Copy the above icon and change the size to 40
+    id: img_font_small # Copy the above icon and change the size to 30
     size: 30
     glyphs: *mdi-weather-glyphs
 
@@ -316,43 +360,60 @@ display:
         it.strftime(370/2, 40, id(font_small), TextAlign::TOP_CENTER, "%A %B %d ", time_now);
         it.strftime(370/2, 80, id(font_large_bold), TextAlign::TOP_CENTER, "%I:%M %p", time_now); // Convert to 12-hour format
 
-        // Sunset/Sunrise
-        int sun_y = 140;
-        int sun_x = 370/2;
-        // sunrise
-        if(id(sun_sunrise).has_state ()) {
-          it.printf(sun_x - 120, sun_y , id(img_font_small), "\U000F059C");
-          it.printf(sun_x - 90, sun_y, id(font_small), "%s", id(sun_sunrise).state.c_str());
-        }
-        // sunset
-        if(id(sun_sunset).has_state ()) {
-          it.printf(sun_x + 90, sun_y , id(img_font_small), "\U000F059B");
-          it.printf(sun_x + 30, sun_y, id(font_small), "%s", id(sun_sunset).state.c_str());
-        }    
-
-        // Draw weather images with text
-        int weather_icon_x = 370*.28, weather_icon_y = 270;
+        // Draw weather images
+        int weather_icon_x = 370*.28, weather_icon_y = 200;
         std::string weather_string = id(myWeather).state.c_str();
         it.printf(weather_icon_x, weather_icon_y, id(font_mdi_large), TextAlign::CENTER, weather_icon_map[weather_string].c_str());
         it.printf(370*.72, weather_icon_y, id(font_xlarge_bold), TextAlign::CENTER, "%s°F", id(temp).state.c_str());
         
+      // ───── HOURLY FORECAST (4 columns) ─────
+        const int x_cols[4] = {70, 145, 220, 295};   // scaled X positions
+        const int y_temp    = 270;                    // temperature row
+        const int y_icon    = 310;                    // icon row
+        const int y_ts      = 370;                    // timestamp row
+        
+
+        it.printf(x_cols[0], y_ts,   id(font_small_bold), 
+                  TextAlign::TOP_CENTER, "%s", id(weather_timestamp_0).state.c_str());
+        it.printf(x_cols[0], y_icon, id(img_font_medium),  
+                  TextAlign::TOP_CENTER,
+                  "%s", weather_icon_map[id(weather_condition_0).state.c_str()].c_str());
+        it.printf(x_cols[0], y_temp, id(font_small_bold),  
+                  TextAlign::TOP_CENTER, "%s°F", id(weather_temperature_0).state.c_str());
+
+        it.printf(x_cols[1], y_ts,   id(font_small_bold), 
+                  TextAlign::TOP_CENTER, "%s", id(weather_timestamp_1).state.c_str());
+        it.printf(x_cols[1], y_icon, id(img_font_medium),  
+                  TextAlign::TOP_CENTER,
+                  "%s", weather_icon_map[id(weather_condition_1).state.c_str()].c_str());
+        it.printf(x_cols[1], y_temp, id(font_small_bold),  
+                  TextAlign::TOP_CENTER, "%s°F", id(weather_temperature_1).state.c_str());
+
+        it.printf(x_cols[2], y_ts,   id(font_small_bold), 
+                  TextAlign::TOP_CENTER, "%s", id(weather_timestamp_2).state.c_str());
+        it.printf(x_cols[2], y_icon, id(img_font_medium),  
+                  TextAlign::TOP_CENTER,
+                  "%s", weather_icon_map[id(weather_condition_2).state.c_str()].c_str());
+        it.printf(x_cols[2], y_temp, id(font_small_bold),  
+                  TextAlign::TOP_CENTER, "%s°F", id(weather_temperature_2).state.c_str());
+
+        it.printf(x_cols[3], y_ts,   id(font_small_bold), 
+                  TextAlign::TOP_CENTER, "%s", id(weather_timestamp_3).state.c_str());
+        it.printf(x_cols[3], y_icon, id(img_font_medium),  
+                  TextAlign::TOP_CENTER,
+                  "%s", weather_icon_map[id(weather_condition_3).state.c_str()].c_str());
+        it.printf(x_cols[3], y_temp, id(font_small_bold),  
+                  TextAlign::TOP_CENTER, "%s°F", id(weather_temperature_3).state.c_str());
+
+
         // Temperature
-        int y = 370;
-        // outside
-        //it.printf(40, y, id(img_font_small), "\U000F18D6");
-        //it.printf(80, y, id(font_small_bold), "%s°F", id(temp).state.c_str());
-        // inside office
-        it.printf(150, y, id(img_font_small), "\U000F0F54");
-        it.printf(190, y, id(font_small_bold), "%.0f°F", id(office_temp).state);
+        int y = 430;
         // inside living room
         it.printf(40, y, id(img_font_small), "\U000F0F54");
         it.printf(80, y, id(font_small_bold), "%.0f°F", id(living_room_temp).state);
-        
-        // Humidity
-        y = 400;
-        it.printf(40, y, id(img_font_small), "\U000F058E");
-        // Get humidity data
-        it.printf(80, y, id(font_small_bold), "%s%%", id(humi).state.c_str());
+        // inside office
+        it.printf(150, y, id(img_font_small), "\U000F0F54");
+        it.printf(190, y, id(font_small_bold), "%.0f°F", id(office_temp).state);
 
 
         // VERTICAL SEPARATOR
@@ -361,19 +422,6 @@ display:
       
         // RIGHT SIDE
         it.printf(600, 40, id(font_large_bold), TextAlign::TOP_CENTER, "Calendar");
-
-        //attempt at reading full day of events
-        std::string eventList = id(all_events).state;
-        std::replace(eventList.begin(), eventList.end(), '\'', '"');
-        if (!eventList.empty()){
-          //ESP_LOGD("state", "%s", eventList.c_str());
-          json::parse_json(eventList, [](JsonObject root) -> bool {
-            bool hasProp = root.containsKey("start_date");
-            ESP_LOGD("hasProp", "result: %s", hasProp ? "true" : "false");
-            return hasProp;
-          });
-        }
-
 
         // Define event structure
         struct Event {
