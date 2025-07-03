@@ -6,11 +6,10 @@ esphome:
 esp32:
   board: esp32-c3-devkitm-1
   framework:
-    type: arduino
+    type: esp-idf
 
 # Enable logging
 logger:
-  level: DEBUG
 
 # Enable Home Assistant API
 api:
@@ -119,11 +118,19 @@ time:
   - platform: homeassistant
     id: homeassistant_time
     on_time: 
+      # update during daytime
       - seconds: 0
-        minutes: '*'
+        minutes: /1
         hours: 7-20
         then:
-          - component.update: my_display
+          - if:
+              condition:
+                - text_sensor.state: 
+                    id: office_display_playing
+                    state: 'playing'
+              then:
+                - logger.log: "Music Playing, Refreshing display..."
+                - component.update: my_display
       #deep sleep at night.
       - hours: 21
         then:
@@ -275,8 +282,8 @@ display:
     dc_pin: GPIO5
     busy_pin: GPIO4
     reset_pin: GPIO2
-    model: 7.50inv2p
-    full_update_every: 30
+    model: 7.50inv2 #p
+    #full_update_every: 30
     update_interval: never
     lambda: |-
       if(id(wifi_status) == 0){
@@ -302,27 +309,6 @@ display:
           {"windy-variant", "\U000F059E"},
           {"exceptional", "\U000F0F38"}
         };
-          
-        std::map<std::string, std::string> weather_text_map
-        {
-          {"clear-night", "Clear Night"},
-          {"cloudy", "Cloudy"},
-          {"partlycloudy", "Partly Cloudy"},
-          {"fog", "Fog"},
-          {"hail", "Hail"},
-          {"lightning", "Lightning"},
-          {"lightning-rainy", "Rain with Lightning"},
-          {"pouring", "Pouring Rain"},
-          {"rainy", "Light Rain"},
-          {"snowy", "Snow"},
-          {"snowy-rainy", "Snow/Rain"},
-          {"sunny", "Sunny"},
-          {"windy", "Windy"},
-          {"windy-variant", "Windy"},
-          {"exceptional", "Dangerous Conditions"}
-        };
-
-
 
         //LEFT SIDE
         // Draw Date and Time
@@ -348,9 +334,6 @@ display:
         int weather_icon_x = 370*.28, weather_icon_y = 270;
         std::string weather_string = id(myWeather).state.c_str();
         it.printf(weather_icon_x, weather_icon_y, id(font_mdi_large), TextAlign::CENTER, weather_icon_map[weather_string].c_str());
-        // Weather text
-        //it.printf(weather_icon_x, 300, id(font_small), TextAlign::TOP_CENTER, "%s", weather_text_map[weather_string].c_str());
-
         it.printf(370*.72, weather_icon_y, id(font_xlarge_bold), TextAlign::CENTER, "%s°F", id(temp).state.c_str());
         
         // Temperature
@@ -441,7 +424,7 @@ display:
                 return "Invalid";
             }
             char buffer[6];  // Need to store "MM-DD\0"
-            strftime(buffer, sizeof(buffer), "%m-%d", &timeinfo);
+            strftime(buffer, sizeof(buffer), "%a", &timeinfo);
             return std::string(buffer);
         };
 
