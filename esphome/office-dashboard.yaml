@@ -10,6 +10,7 @@ esp32:
 
 # Enable logging
 logger:
+  level: DEBUG #INFO
 
 # Enable Home Assistant API
 api:
@@ -111,26 +112,25 @@ time:
     on_time: 
       # update during daytime
       - seconds: 0
-        minutes: /1
+        minutes: '*'
         hours: 7-20
         then:
           - if:
               condition:
-                - text_sensor.state: 
-                    id: office_display_playing
-                    state: 'playing'
+                - binary_sensor.is_on: office_lights_power
               then:
                 - logger.log: "Music Playing, Refreshing display..."
                 - component.update: my_display
-      #deep sleep at night.
+      #deep sleep at night. 9pm - 7am
       - hours: 21
         then:
           - delay: 10s
           - deep_sleep.enter:
               id: deep_sleep_1
-              sleep_duration: !lambda "return 1000 * 60 * 60 * 11;" #11 hours
+              sleep_duration: !lambda "return 1000 * 60 * 60 * 10;" #10 hours, 7am next day
 
 text_sensor:
+  #event sensors
   - platform: homeassistant
     id: ha_calendar_event_1
     entity_id: calendar.philiph1352000_gmail_com
@@ -143,20 +143,61 @@ text_sensor:
     id: ha_calendar_end_time_1
     entity_id: calendar.philiph1352000_gmail_com
     attribute: "end_time"
-
+  
   - platform: homeassistant
     id: ha_calendar_event_2
+    entity_id: sensor.weekly_calendar
+    attribute: "event_title_1"
+  - platform: homeassistant
+    id: ha_calendar_start_time_2
+    entity_id: sensor.weekly_calendar
+    attribute: "event_start_1"
+  - platform: homeassistant
+    id: ha_calendar_end_time_2
+    entity_id: sensor.weekly_calendar
+    attribute: "event_end_1"
+
+  - platform: homeassistant
+    id: ha_calendar_event_3
+    entity_id: sensor.weekly_calendar
+    attribute: "event_title_2"
+  - platform: homeassistant
+    id: ha_calendar_start_time_3
+    entity_id: sensor.weekly_calendar
+    attribute: "event_start_2"
+  - platform: homeassistant
+    id: ha_calendar_end_time_3
+    entity_id: sensor.weekly_calendar
+    attribute: "event_end_2"
+
+  - platform: homeassistant
+    id: ha_calendar_event_4
     entity_id: calendar.joshua_hoff1_gmail_com
     attribute: "message"
   - platform: homeassistant
-    id: ha_calendar_start_time_2
+    id: ha_calendar_start_time_4
     entity_id: calendar.joshua_hoff1_gmail_com
     attribute: "start_time"
   - platform: homeassistant
-    id: ha_calendar_end_time_2
+    id: ha_calendar_end_time_4
     entity_id: calendar.joshua_hoff1_gmail_com
     attribute: "end_time"
 
+  - platform: homeassistant
+    id: ha_calendar_event_5
+    entity_id: sensor.weekly_calendar_professional
+    attribute: "event_title_1"
+  - platform: homeassistant
+    id: ha_calendar_start_time_5
+    entity_id: sensor.weekly_calendar_professional
+    attribute: "event_start_1"
+  - platform: homeassistant
+    id: ha_calendar_end_time_5
+    entity_id: sensor.weekly_calendar_professional
+    attribute: "event_end_1"
+  
+
+# temperature
   - platform: homeassistant
     entity_id: weather.pirateweather
     id: myWeather
@@ -168,7 +209,7 @@ text_sensor:
     entity_id: weather.pirateweather
     id: humi
     attribute: "humidity"
-
+#forecast
   - platform: homeassistant
     entity_id: sensor.weather_forecast
     attribute: weather_temperature_0
@@ -243,6 +284,7 @@ text_sensor:
   - platform: homeassistant
     entity_id: media_player.kitchen_display
     id: office_display_playing #off, playing, paused, buffering, idle
+
   - platform: homeassistant
     entity_id: media_player.kitchen_display
     id: office_display_song
@@ -256,6 +298,31 @@ text_sensor:
     id: office_display_artist
     attribute: "media_artist"
 
+  - platform:  homeassistant
+    entity_id: light.office
+    id: office_lights
+
+binary_sensor:
+  - platform: template
+    device_class: light    
+    lambda: !lambda |-
+      if(id(office_lights).state == "on")
+        return true;
+      else
+        return false;
+    id: office_lights_power
+
+  - platform: template
+    device_class: power    
+    lambda: !lambda |-
+      if(id(office_display_playing).state == "off")
+        return false;
+      else
+        return true;
+    id: office_media_active
+    
+    
+
 sensor:
   - platform: homeassistant
     entity_id: sensor.office_weather_temperature
@@ -263,6 +330,9 @@ sensor:
   - platform: homeassistant
     entity_id: sensor.living_room_weather_temperature
     id: living_room_temp
+  - platform: homeassistant
+    entity_id: sensor.basement_weather_temperature
+    id: basement_temp
 
 font:
   - file: "fonts/GoogleSans-Medium.ttf"
@@ -367,13 +437,14 @@ display:
         it.printf(370*.72, weather_icon_y, id(font_xlarge_bold), TextAlign::CENTER, "%s°F", id(temp).state.c_str());
         
       // ───── HOURLY FORECAST (4 columns) ─────
-        const int x_cols[4] = {70, 145, 220, 295};   // scaled X positions
+        const int x_cols[4] = {70, 145, 220, 295};    // scaled X positions
         const int y_temp    = 270;                    // temperature row
         const int y_icon    = 310;                    // icon row
         const int y_ts      = 370;                    // timestamp row
         
+        ESP_LOGD("Forcast Timestamp", "times=%s, temp=%s, condition=%s", id(weather_timestamp_0).state.c_str(), id(weather_temperature_0).state.c_str(), id(weather_condition_0).state.c_str());
 
-        it.printf(x_cols[0], y_ts,   id(font_small_bold), 
+        it.printf(x_cols[0], y_ts, id(font_small_bold), 
                   TextAlign::TOP_CENTER, "%s", id(weather_timestamp_0).state.c_str());
         it.printf(x_cols[0], y_icon, id(img_font_medium),  
                   TextAlign::TOP_CENTER,
@@ -381,7 +452,7 @@ display:
         it.printf(x_cols[0], y_temp, id(font_small_bold),  
                   TextAlign::TOP_CENTER, "%s°F", id(weather_temperature_0).state.c_str());
 
-        it.printf(x_cols[1], y_ts,   id(font_small_bold), 
+        it.printf(x_cols[1], y_ts, id(font_small_bold), 
                   TextAlign::TOP_CENTER, "%s", id(weather_timestamp_1).state.c_str());
         it.printf(x_cols[1], y_icon, id(img_font_medium),  
                   TextAlign::TOP_CENTER,
@@ -389,7 +460,7 @@ display:
         it.printf(x_cols[1], y_temp, id(font_small_bold),  
                   TextAlign::TOP_CENTER, "%s°F", id(weather_temperature_1).state.c_str());
 
-        it.printf(x_cols[2], y_ts,   id(font_small_bold), 
+        it.printf(x_cols[2], y_ts, id(font_small_bold), 
                   TextAlign::TOP_CENTER, "%s", id(weather_timestamp_2).state.c_str());
         it.printf(x_cols[2], y_icon, id(img_font_medium),  
                   TextAlign::TOP_CENTER,
@@ -397,7 +468,7 @@ display:
         it.printf(x_cols[2], y_temp, id(font_small_bold),  
                   TextAlign::TOP_CENTER, "%s°F", id(weather_temperature_2).state.c_str());
 
-        it.printf(x_cols[3], y_ts,   id(font_small_bold), 
+        it.printf(x_cols[3], y_ts, id(font_small_bold), 
                   TextAlign::TOP_CENTER, "%s", id(weather_timestamp_3).state.c_str());
         it.printf(x_cols[3], y_icon, id(img_font_medium),  
                   TextAlign::TOP_CENTER,
@@ -414,6 +485,9 @@ display:
         // inside office
         it.printf(150, y, id(img_font_small), "\U000F0F54");
         it.printf(190, y, id(font_small_bold), "%.0f°F", id(office_temp).state);
+        // inside basement
+        it.printf(260, y, id(img_font_small), "\U000F0F54");
+        it.printf(300, y, id(font_small_bold), "%.0f°F", id(basement_temp).state);
 
 
         // VERTICAL SEPARATOR
@@ -443,7 +517,10 @@ display:
         // Create event list
         std::vector<Event> events = {
             {id(ha_calendar_event_1).state, id(ha_calendar_start_time_1).state, id(ha_calendar_end_time_1).state, parse_time(id(ha_calendar_start_time_1).state)},
-            {id(ha_calendar_event_2).state, id(ha_calendar_start_time_2).state, id(ha_calendar_end_time_2).state, parse_time(id(ha_calendar_start_time_2).state)}
+            {id(ha_calendar_event_2).state, id(ha_calendar_start_time_2).state, id(ha_calendar_end_time_2).state, parse_time(id(ha_calendar_start_time_2).state)},
+            {id(ha_calendar_event_3).state, id(ha_calendar_start_time_3).state, id(ha_calendar_end_time_3).state, parse_time(id(ha_calendar_start_time_3).state)},
+            {id(ha_calendar_event_4).state, id(ha_calendar_start_time_4).state, id(ha_calendar_end_time_4).state, parse_time(id(ha_calendar_start_time_4).state)},
+            {id(ha_calendar_event_5).state, id(ha_calendar_start_time_5).state, id(ha_calendar_end_time_5).state, parse_time(id(ha_calendar_start_time_5).state)}
         };
         ESP_LOGD("myCalendar", "Start Time: %s -> %ld", id(ha_calendar_start_time_1).state.c_str(), parse_time(id(ha_calendar_start_time_1).state));
 
@@ -480,7 +557,7 @@ display:
         int even_x_start_offset = 400;
         int even_y_start_offset = 100;
         for (const auto &event : events) {
-          if(even_y_start_offset >= 420){
+          if(even_y_start_offset >= 370){
             break;
           }
 
@@ -504,7 +581,7 @@ display:
         }
 
         // Current media
-        if(id(office_display_playing).state == "playing"){
+        if(id(office_media_active).state){
           it.printf(400, 370, id(font_small_bold), "%s", id(office_display_song).state.c_str());
           it.printf(400, 400, id(font_small_bold), "%s", id(office_display_artist).state.c_str());
         }

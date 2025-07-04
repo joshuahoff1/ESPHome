@@ -1,0 +1,43 @@
+trigger:
+  - trigger: time_pattern
+    minutes: "/30" #every half hour
+action:
+  action: calendar.get_events
+  data:
+    duration:
+      hours: 168 #1 week
+      minutes: 0
+      seconds: 0
+  target:
+    entity_id: calendar.joshua_hoff1_gmail_com
+  response_variable: cal_week
+
+sensor:
+  - name: Weekly calendar professional
+    unique_id: "b091abb0-36ee-448e-9820-c87bd18e71b5"
+    state: "OK"
+    attributes:
+      event_start_0: >
+        {{ as_timestamp(cal_week['calendar.joshua_hoff1_gmail_com'].events[0].start)
+        | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
+      event_end_0: >
+        {{ as_timestamp(cal_week['calendar.joshua_hoff1_gmail_com'].events[0].end)
+        | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
+      event_title_0: >
+        {{ cal_week['calendar.joshua_hoff1_gmail_com'].events[0].summary }}
+      event_start_1: >
+        {{ as_timestamp(cal_week['calendar.joshua_hoff1_gmail_com'].events[1].start)
+        | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
+      event_end_1: >
+        {{ as_timestamp(cal_week['calendar.joshua_hoff1_gmail_com'].events[1].end)
+        | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
+      event_title_1: >
+        {{ cal_week['calendar.joshua_hoff1_gmail_com'].events[1].summary }}
+      event_start_2: >
+        {{ as_timestamp(cal_week['calendar.joshua_hoff1_gmail_com'].events[2].start)
+        | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
+      event_end_2: >
+        {{ as_timestamp(cal_week['calendar.joshua_hoff1_gmail_com'].events[2].end)
+        | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
+      event_title_2: >
+        {{ cal_week['calendar.joshua_hoff1_gmail_com'].events[2].summary }}

@@ -11,6 +11,7 @@ action:
 
 sensor:
   - name: Weather forecast
+    unique_id: "83f49699-cd18-4579-b60c-8e1339aa69d7"
     state: "OK"
     attributes:
       weather_condition_now: >
