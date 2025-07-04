@@ -1,0 +1,11 @@
+
+# Ignore everything but...
+*
+
+# But not these files...
+!.gitignore
+
+
+# ...custom templates and the office dashboard
+!templates/*
+!esphome/officedashboard.yaml
