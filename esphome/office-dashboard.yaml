@@ -171,6 +171,19 @@ text_sensor:
     attribute: "event_end_2"
 
   - platform: homeassistant
+    id: ha_calendar_event_6
+    entity_id: sensor.weekly_calendar
+    attribute: "event_title_3"
+  - platform: homeassistant
+    id: ha_calendar_start_time_6
+    entity_id: sensor.weekly_calendar
+    attribute: "event_start_3"
+  - platform: homeassistant
+    id: ha_calendar_end_time_6
+    entity_id: sensor.weekly_calendar
+    attribute: "event_end_3"
+
+  - platform: homeassistant
     id: ha_calendar_event_4
     entity_id: calendar.joshua_hoff1_gmail_com
     attribute: "message"
@@ -557,7 +570,7 @@ display:
         int even_x_start_offset = 400;
         int even_y_start_offset = 100;
         for (const auto &event : events) {
-          if(even_y_start_offset >= 370){
+          if(even_y_start_offset >= 400){
             break;
           }
 
@@ -582,7 +595,7 @@ display:
 
         // Current media
         if(id(office_media_active).state){
-          it.printf(400, 370, id(font_small_bold), "%s", id(office_display_song).state.c_str());
-          it.printf(400, 400, id(font_small_bold), "%s", id(office_display_artist).state.c_str());
+          it.printf(400, 400, id(font_small_bold), "%s", id(office_display_song).state.c_str());
+          it.printf(400, 430, id(font_small_bold), "%s", id(office_display_artist).state.c_str());
         }
       }

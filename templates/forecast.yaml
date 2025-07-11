@@ -17,27 +17,7 @@ sensor:
       weather_condition_now: >
         {% set cond_now = states('weather.pirateweather') %}
         {{ cond_now }}
-      weather_condition_0: >
-        {% set cond0        = pw_hourly['weather.pirateweather'].forecast[1].condition %}
-        {% set next_set     = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
-        {% set next_rise    = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
-        {% set cond0_time   = as_timestamp(pw_hourly['weather.pirateweather'].forecast[1].datetime) %}
-        {% if   cond0_time < next_rise and next_rise < next_set %}
-          {% if   cond0 == 'sunny'          %} night
-          {% elif cond0 == 'partlycloudy'   %} night-partly-cloudy
-          {% else                           %} {{ cond0 }}
-          {% endif %}
-        {% else %}
-          {{ cond0 }}
-        {% endif %}
-      weather_temperature_0: >
-        {{ pw_hourly['weather.pirateweather'].forecast[1].temperature | round }}
-
-      weather_timestamp_0: >
-        {{ as_timestamp(pw_hourly['weather.pirateweather'].forecast[1].datetime)
-        | timestamp_custom('%-I %p') }}
-
-      weather_condition_1: >
+      weather_condition_0: > #next hour
         {% set cond0        = pw_hourly['weather.pirateweather'].forecast[2].condition %}
         {% set next_set     = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
         {% set next_rise    = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
@@ -50,14 +30,14 @@ sensor:
         {% else %}
           {{ cond0 }}
         {% endif %}
-      weather_temperature_1: >
+      weather_temperature_0: >
         {{ pw_hourly['weather.pirateweather'].forecast[2].temperature | round }}
 
-      weather_timestamp_1: >
+      weather_timestamp_0: >
         {{ as_timestamp(pw_hourly['weather.pirateweather'].forecast[2].datetime)
         | timestamp_custom('%-I %p') }}
 
-      weather_condition_2: >
+      weather_condition_1: > #2 hours away
         {% set cond0        = pw_hourly['weather.pirateweather'].forecast[3].condition %}
         {% set next_set     = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
         {% set next_rise    = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
@@ -70,18 +50,38 @@ sensor:
         {% else %}
           {{ cond0 }}
         {% endif %}
-      weather_temperature_2: >
+      weather_temperature_1: >
         {{ pw_hourly['weather.pirateweather'].forecast[3].temperature | round }}
 
-      weather_timestamp_2: >
+      weather_timestamp_1: >
         {{ as_timestamp(pw_hourly['weather.pirateweather'].forecast[3].datetime)
         | timestamp_custom('%-I %p') }}
 
-      weather_condition_3: >
-        {% set cond0        = pw_hourly['weather.pirateweather'].forecast[4].condition %}
+      weather_condition_2: > #4 hours away
+        {% set cond0        = pw_hourly['weather.pirateweather'].forecast[5].condition %}
         {% set next_set     = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
         {% set next_rise    = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
-        {% set cond0_time   = as_timestamp(pw_hourly['weather.pirateweather'].forecast[4].datetime) %}
+        {% set cond0_time   = as_timestamp(pw_hourly['weather.pirateweather'].forecast[5].datetime) %}
+        {% if   cond0_time < next_rise and next_rise < next_set %}
+          {% if   cond0 == 'sunny'          %} night
+          {% elif cond0 == 'partlycloudy'   %} night-partly-cloudy
+          {% else                           %} {{ cond0 }}
+          {% endif %}
+        {% else %}
+          {{ cond0 }}
+        {% endif %}
+      weather_temperature_2: >
+        {{ pw_hourly['weather.pirateweather'].forecast[5].temperature | round }}
+
+      weather_timestamp_2: >
+        {{ as_timestamp(pw_hourly['weather.pirateweather'].forecast[5].datetime)
+        | timestamp_custom('%-I %p') }}
+
+      weather_condition_3: > #6 hours away
+        {% set cond0        = pw_hourly['weather.pirateweather'].forecast[7].condition %}
+        {% set next_set     = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
+        {% set next_rise    = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
+        {% set cond0_time   = as_timestamp(pw_hourly['weather.pirateweather'].forecast[7].datetime) %}
         {% if   cond0_time < next_rise and next_rise < next_set %}
           {% if   cond0 == 'sunny'          %} night
           {% elif cond0 == 'partlycloudy'   %} night-partly-cloudy
@@ -91,8 +91,8 @@ sensor:
           {{ cond0 }}
         {% endif %}
       weather_temperature_3: >
-        {{ pw_hourly['weather.pirateweather'].forecast[4].temperature | round }}
+        {{ pw_hourly['weather.pirateweather'].forecast[7].temperature | round }}
 
       weather_timestamp_3: >
-        {{ as_timestamp(pw_hourly['weather.pirateweather'].forecast[4].datetime)
+        {{ as_timestamp(pw_hourly['weather.pirateweather'].forecast[7].datetime)
         | timestamp_custom('%-I %p') }}

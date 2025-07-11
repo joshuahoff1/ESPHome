@@ -41,3 +41,11 @@ sensor:
         | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
       event_title_2: >
         {{ cal_week['calendar.philiph1352000_gmail_com'].events[2].summary }}
+      event_start_3: >
+        {{ as_timestamp(cal_week['calendar.philiph1352000_gmail_com'].events[3].start)
+        | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
+      event_end_3: >
+        {{ as_timestamp(cal_week['calendar.philiph1352000_gmail_com'].events[3].end)
+        | timestamp_custom('%Y-%m-%d %H:%M:%S')  }}
+      event_title_3: >
+        {{ cal_week['calendar.philiph1352000_gmail_com'].events[3].summary }}
